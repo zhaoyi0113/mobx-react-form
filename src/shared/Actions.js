@@ -179,7 +179,7 @@ export default {
     }
 
     // UPDATE CUSTOM PROP
-    if (_.has(this, 'form')) {
+    if (_.has(this, 'isField')) {
       if (_.isString($) && !_.isNil(data)) {
         utils.allowed('props', [$]);
         _.set(this, `$${$}`, data);
@@ -215,10 +215,7 @@ export default {
    */
   deepSet($, data, path = '', recursion = false) {
     const err = 'You are updating a not existent field:';
-
-    const isStrict = _.has(this, 'form')
-      ? this.form.state.options.get('strictUpdate')
-      : this.state.options.get('strictUpdate');
+    const isStrict = this.state.options.get('strictUpdate');
 
     _.each(data, ($val, $key) => {
       const $path = _.trimStart(`${path}.${$key}`, '.');
@@ -377,14 +374,14 @@ export default {
       return;
     }
 
-    if (_.has(this, 'form')) {
+    if (_.has(this, 'isField')) {
       const $n = this.maxKey() + 1;
       const tree = this.pathToFieldsTree(this.path);
       const $path = key => _.trimStart([this.path, key].join('.'), '.');
 
       _.each(tree, field => this.initField($n, $path($n), field));
 
-      this.form.observeFields(this.fields);
+      this.state.form.observeFields(this.fields);
     }
   },
 
@@ -403,8 +400,8 @@ export default {
     const last = _.last(keys);
     const cpath = _.trimEnd($path, `.${last}`);
 
-    if (_.has(this, 'form')) {
-      this.form.select(cpath, null, true).del(last);
+    if (_.has(this, 'isField')) {
+      this.state.form.select(cpath, null, true).del(last);
       return;
     }
 
