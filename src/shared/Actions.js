@@ -86,8 +86,7 @@ export default {
   init($fields = null) {
     _.set(this, 'fields', asMap({}));
 
-    this.state.initial.props.values = $fields; // eslint-disable-line
-    this.state.current.props.values = $fields; // eslint-disable-line
+    this.state.set('initial', 'props', { values: $fields });
 
     this.initFields({
       fields: $fields || this.state.struct(),
@@ -326,30 +325,30 @@ export default {
    *
    * JSON.stringify(form)
    * // => {
-     *   "fields": {
-     *     "state": {
-     *       "fields": {
-     *         "city": {
-     *           "fields": { "places": {
-     *                "fields": {},
-     *                "key": "places", "path": "state.city.places", "$value": "NY Places"
-     *              }
-     *           },
-     *           "key": "city", "path": "state.city", "$value": "New York"
-     *         }
-     *       },
-     *       "key": "state", "path": "state", "$value": "USA"
-     *     }
-     *   }
-     * }
+   *   "fields": {
+   *     "state": {
+   *       "fields": {
+   *         "city": {
+   *           "fields": { "places": {
+   *                "fields": {},
+   *                "key": "places", "path": "state.city.places", "$value": "NY Places"
+   *              }
+   *           },
+   *           "key": "city", "path": "state.city", "$value": "New York"
+   *         }
+   *       },
+   *       "key": "state", "path": "state", "$value": "USA"
+   *     }
+   *   }
+   * }
    *
    * const data = {};
    * form.forEach(formField => data[formField.path] = formField.value);
    * // => {
-     *   "state": "USA",
-     *   "state.city": "New York",
-     *   "state.city.places": "NY Places"
-     * }
+   *   "state": "USA",
+   *   "state.city": "New York",
+   *   "state.city.places": "NY Places"
+   * }
    *
    */
   forEach(iteratee, fields = null, depth = 0) {

@@ -11,12 +11,12 @@ export default class State {
   initial = {
     props: {},
     fields: {},
-  }
+  };
 
   current = {
     props: {},
     fields: {},
-  }
+  };
 
   initOptions(initial = {}) {
     this.options = new Options();
