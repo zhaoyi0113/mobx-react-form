@@ -15,13 +15,17 @@
 
 ## Features
 
-- Automatic Reactive Form State Management with MobX Magic
-- Automatic Reactive Validation & Error Messages
-- Validation Plugins & Multiple Validation Styles
-- Sync & Async Validation functions
-- Nested Fields (w/ Serialization & Validation)
-- Support for Material UI, React Widgets, React Select
-- Dedicated [DevTools](https://github.com/foxhound87/mobx-react-form-devtools) Package
+- Automatic Reactive Form State Management with MobX Magic.
+- Automatic Reactive Validation & Error Messages.
+- Validation Plugins & Multiple Validation Styles.
+- Nested Fields (w/ Serialization & Validation).
+- Support for Sync & Async Validation functions (w/ Promises).
+- Support for Material UI, React Widgets, React Select & more.
+- Dedicated [DevTools](https://github.com/foxhound87/mobx-react-form-devtools) Package.
+
+### TypeScript Support
+
+A [TypeScript Branch](https://github.com/foxhound87/mobx-react-form/tree/typescript/) has been created. Feel free to contribute!
 
 <br>
 
@@ -29,13 +33,16 @@
 
 [https://foxhound87.github.io/mobx-react-form](https://foxhound87.github.io/mobx-react-form)
 
-## Demo
+## Live Demo
 
 [https://foxhound87.github.io/mobx-react-form/demo.html](https://foxhound87.github.io/mobx-react-form/demo.html)
 
+## Demo Code
+
+[https://github.com/foxhound87/mobx-react-form-demo](https://github.com/foxhound87/mobx-react-form-demo)
+
 ## Tutorial
 [Automagically manage React forms state and automatic validation with MobX](https://medium.com/@foxhound87/automagically-manage-react-forms-state-with-mobx-and-automatic-validation-2b00a32b9769)
-
 
 ## Install
 
@@ -43,7 +50,9 @@
 npm install --save mobx-react-form
 ```
 
-## Usage
+<br>
+
+## Quick Start
 
 #### Choose and Setup a Validation Plugin
 
@@ -72,7 +81,7 @@ const fields = [{
   label: 'Password',
   rules: 'required|string|between:5,25',
 }, {
-  name: 'confirm_password',
+  name: 'passwordConfirm',
   label: 'Password Confirmation',
   rules: 'same:password',
 }];
@@ -114,9 +123,9 @@ export default new MyForm({ fields, plugins });
 
 #### Pass the form to a react component
 
-The package provide some built-in and ready to use Event Handlers:
+The package provide those built-in and ready to use Event Handlers:
 
-`onSubmit(e)`, `onSuccess(e)`, `onError(e)`.
+`onSubmit(e)`, `onClear(e)`, `onReset(e)`.
 
 ```javascript
 import React from 'react';

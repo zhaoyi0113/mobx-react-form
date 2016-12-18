@@ -69,7 +69,7 @@ export default class DVR {
     // check validation
     if (validation.passes()) return;
     // the validation is failed, set the field errorbre
-    field.setInvalid(_.first(validation.errors.get(field.path)));
+    field.invalidate(_.first(validation.errors.get(field.path)));
   }
 
   validateFieldAsync(field, form, data) {
@@ -84,7 +84,7 @@ export default class DVR {
     // set label into errors messages instead key
     validation.setAttributeNames({ [field.path]: field.label });
     // handle async fails
-    if (!field.hasError) field.setInvalid(this.loadingMessage(), true);
+    if (!field.hasError) field.invalidate(this.loadingMessage(), true);
 
     const $p = new Promise((resolve) => {
       validation.passes(() => this.handleAsyncPasses(field, resolve));
@@ -112,7 +112,7 @@ export default class DVR {
 
   executeAsyncValidation(field) {
     if (field.validationAsyncData.valid === false) {
-      field.setInvalid(field.validationAsyncData.message, true);
+      field.invalidate(field.validationAsyncData.message, true);
     }
   }
 

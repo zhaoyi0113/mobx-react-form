@@ -2,6 +2,11 @@ import { action, observable, computed, isObservableArray, toJS, asMap } from 'mo
 import _ from 'lodash';
 import utils from './utils';
 
+import {
+  parseInitialValue,
+  parseDefaultValue,
+  parseGetLabel } from './parser';
+
 export default class Field {
 
   fields = asMap({});
@@ -9,15 +14,17 @@ export default class Field {
   isField = true;
   state;
   path;
-  key;
   name;
+  key;
+  id;
 
   $rules;
   $validate;
   $related;
 
-  @observable $label;
   @observable $value;
+  @observable $label;
+  @observable $placeholder;
   @observable $default;
   @observable $initial = undefined;
   @observable $disabled = false;
@@ -52,9 +59,10 @@ export default class Field {
   }
 
   @action
-  setupField($key, $path, $field, {
+  setupField($key, $path, $data, {
     $value = null,
     $label = null,
+    $placeholder = null,
     $default = null,
     $disabled = null,
     $related = null,
@@ -63,20 +71,32 @@ export default class Field {
   } = {}, update) {
     this.key = $key;
     this.path = $path;
+    this.id = utils.makeId(this.path);
 
-    if (_.isNil($field)) $field = ''; // eslint-disable-line
+    if (_.isNil($data)) $data = ''; // eslint-disable-line
 
     if (
-    _.isBoolean($field) ||
-    _.isArray($field) ||
-    _.isString($field) ||
-    _.isNumber($field)) {
+    _.isBoolean($data) ||
+    _.isArray($data) ||
+    _.isString($data) ||
+    _.isNumber($data)) {
       /* The field IS the value here */
       this.name = $key;
-      this.$initial = this.parseInitialValue($field, $value);
-      this.$default = update ? '' : this.parseDefaultValue($field.default, $default);
+
+      this.$initial = parseInitialValue({
+        unified: $data,
+        separated: $value,
+      });
+
+      this.$default = parseDefaultValue({
+        unified: update ? '' : $data.default,
+        separated: $default,
+        initial: this.$initial,
+      });
+
       this.$value = this.$initial;
       this.$label = $label || $key;
+      this.$placeholder = $placeholder || '';
       this.$rules = $rules || null;
       this.$disabled = $disabled || false;
       this.$related = $related || [];
@@ -84,13 +104,24 @@ export default class Field {
       return;
     }
 
-    if (_.isObject($field)) {
-      const { name, label, disabled, rules, validate, related } = $field;
-      this.$initial = this.parseInitialValue($field.value, $value);
-      this.$default = update ? '' : this.parseDefaultValue($field.default, $default);
+    if (_.isObject($data)) {
+      const { name, label, placeholder, disabled, rules, validate, related } = $data;
+
+      this.$initial = parseInitialValue({
+        unified: $data.value,
+        separated: $value,
+      });
+
+      this.$default = parseDefaultValue({
+        unified: update ? '' : $data.default,
+        separated: $default,
+        initial: this.$initial,
+      });
+
       this.name = name || $key;
       this.$value = this.$initial;
       this.$label = $label || label || this.name;
+      this.$placeholder = $placeholder || placeholder || '';
       this.$rules = $rules || rules || null;
       this.$disabled = $disabled || disabled || false;
       this.$related = $related || related || [];
@@ -98,26 +129,11 @@ export default class Field {
     }
   }
 
-  parseInitialValue(unified, separated) {
-    if (separated === 0) return separated;
-    const $value = separated || unified;
-    // handle boolean
-    if (_.isBoolean($value)) return $value;
-    // handle others types
-    return !_.isNil($value) ? $value : '';
-  }
-
-  parseDefaultValue(initial, separated) {
-    if (separated === 0) return separated;
-    const $value = separated || initial;
-    return !_.isNil($value) ? $value : this.$initial;
-  }
-
   /* ------------------------------------------------------------------ */
   /* ACTIONS */
 
   @action
-  setInvalid(message, async = false) {
+  invalidate(message, async = false) {
     if (async === true) {
       this.errorAsync = message;
       return;
@@ -125,11 +141,15 @@ export default class Field {
 
     if (_.isArray(message)) {
       this.validationErrorStack = message;
+      this.showErrors(true);
       return;
     }
 
     this.validationErrorStack.unshift(message);
+    this.showErrors(true);
   }
+
+  setInvalid = this.invalidate;
 
   @action
   setValidationAsyncData(obj = {}) {
@@ -177,13 +197,9 @@ export default class Field {
 
   @action
   showErrors(showErrors = true) {
-    if (showErrors === false) {
-      this.showError = false;
-      return;
-    }
-
+    this.showError = showErrors;
     this.errorSync = _.head(this.validationErrorStack);
-    this.validationErrorStack = [];
+    // this.validationErrorStack = [];
   }
 
   @action
@@ -198,18 +214,15 @@ export default class Field {
   /* ------------------------------------------------------------------ */
   /* COMPUTED */
 
-  @computed
-  get hasIncrementalNestedFields() {
+  @computed get hasIncrementalNestedFields() {
     return (utils.hasIntKeys(this.fields) && this.fields.size);
   }
 
-  @computed
-  get hasNestedFields() {
+  @computed get hasNestedFields() {
     return (this.fields.size !== 0);
   }
 
-  @computed
-  get value() {
+  @computed get value() {
     if (this.incremental || this.hasNestedFields) {
       return this.get('value');
     }
@@ -218,7 +231,7 @@ export default class Field {
       return [].slice.call(this.$value);
     }
 
-    return this.$value;
+    return toJS(this.$value);
   }
 
   set value(newVal) {
@@ -235,49 +248,52 @@ export default class Field {
     this.$value = newVal;
   }
 
-  @computed
-  get label() {
-    return this.$label;
+  @computed get initial() {
+    return toJS(this.$initial);
   }
 
-  @computed
-  get related() {
+  set initial(val) {
+    this.$initial = parseInitialValue({ separated: val });
+  }
+
+  @computed get default() {
+    return toJS(this.$default);
+  }
+
+  set default(val) {
+    this.$default = parseDefaultValue({ separated: val });
+  }
+
+  @computed get label() {
+    return parseGetLabel(this.$label);
+  }
+
+  @computed get placeholder() {
+    return this.$placeholder;
+  }
+
+  @computed get related() {
     return this.$related;
   }
 
-  @computed
-  get disabled() {
+  @computed get disabled() {
     return this.$disabled;
   }
 
-  @computed
-  get default() {
-    return this.$default;
-  }
-
-  @computed
-  get initial() {
-    return this.$initial;
-  }
-
-  @computed
-  get rules() {
+  @computed get rules() {
     return this.$rules;
   }
 
-  @computed
-  get validate() {
+  @computed get validate() {
     return this.$validate;
   }
 
-  @computed
-  get error() {
+  @computed get error() {
     if (this.showError === false) return null;
     return (this.errorAsync || this.errorSync);
   }
 
-  @computed
-  get hasError() {
+  @computed get hasError() {
     return ((this.validationAsyncData.valid === false)
       && !_.isEmpty(this.validationAsyncData))
       || !_.isEmpty(this.validationErrorStack)
@@ -285,56 +301,48 @@ export default class Field {
       || _.isString(this.errorSync);
   }
 
-  @computed
-  get isValid() {
+  @computed get isValid() {
     return !this.hasError;
   }
 
-  @computed
-  get isDirty() {
+  @computed get isDirty() {
     return this.hasNestedFields
       ? this.check('isDirty', true)
       : !_.isEqual(this.$default, this.value);
   }
 
-  @computed
-  get isPristine() {
+  @computed get isPristine() {
     return this.hasNestedFields
       ? this.check('isPristine', true)
       : _.isEqual(this.$default, this.value);
   }
 
-  @computed
-  get isDefault() {
+  @computed get isDefault() {
     return this.hasNestedFields
       ? this.check('isDefault', true)
       : _.isEqual(this.$default, this.value);
   }
 
-  @computed
-  get isEmpty() {
+  @computed get isEmpty() {
     if (this.hasNestedFields) return this.check('isEmpty', true);
     if (_.isBoolean(this.value)) return !!this.$value;
     if (_.isNumber(this.value)) return false;
     return _.isEmpty(this.value);
   }
 
-  @computed
-  get focus() {
+  @computed get focus() {
     return this.hasNestedFields
       ? this.check('focus', true)
       : this.$focus;
   }
 
-  @computed
-  get touched() {
+  @computed get touched() {
     return this.hasNestedFields
       ? this.check('touched', true)
       : this.$touched;
   }
 
-  @computed
-  get changed() {
+  @computed get changed() {
     return this.hasNestedFields
       ? this.check('changed', true)
       : this.$changed;
@@ -394,9 +402,9 @@ export default class Field {
   /**
     Event: On Add
   */
-  onAdd = (e, key = null) => {
+  onAdd = (e, val = null) => {
     e.preventDefault();
-    this.add(key);
+    this.add(val);
   };
 
   /**

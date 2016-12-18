@@ -1,8 +1,8 @@
 import _ from 'lodash';
 
-const computed = ['error', 'hasError', 'isValid', 'isDirty', 'isPristine', 'isDefault', 'isEmpty', 'focus', 'touched', 'changed'];
-const props = ['value', 'label', 'disabled', 'initial', 'default', 'related'];
-const iprops = ['values', 'labels', 'disabled', 'initials', 'defaults', 'related'];
+const computed = ['hasError', 'isValid', 'isDirty', 'isPristine', 'isDefault', 'isEmpty', 'focus', 'touched', 'changed'];
+const props = ['value', 'initial', 'default', 'label', 'placeholder', 'disabled', 'related', 'error'];
+const iprops = ['values', 'initials', 'defaults', 'labels', 'placeholders', 'disabled', 'related'];
 const vprops = ['rules', 'validate'];
 
 const check = ({ type, data }) => {
@@ -85,6 +85,9 @@ const maxKey = (fields) => {
   return _.isUndefined(max) ? 0 : max;
 };
 
+const makeId = path =>
+  _.uniqueId([_.replace(path, new RegExp('\\.', 'g'), '-'), '--'].join(''));
+
 export default {
   computed,
   props,
@@ -103,4 +106,5 @@ export default {
   parseIntKeys,
   hasIntKeys,
   maxKey,
+  makeId,
 };

@@ -3,14 +3,20 @@ import { expect } from 'chai';
 import $ from './data/_.nested'; // FORMS
 
 describe('Check $A Nested Fields', () => {
-  it('$A address.street.value should be equal to "Broadway"', () =>
-    expect($.$A.$('address.street').value).to.be.equal('Broadway'));
+  it('$A user.email.value should be equal to "notAnEmail"', () =>
+    expect($.$A.$('user.email').value).to.be.equal('notAnEmail'));
 
-  it('$A address.city.value should be equal to "Los Angeles"', () =>
-    expect($.$A.$('address.city').value).to.be.equal('Los Angeles'));
+  it('$A user.emailConfirm.value should be equal to "s.jobs@apple.com"', () =>
+    expect($.$A.$('user.emailConfirm').value).to.be.equal('s.jobs@apple.com'));
 
-  it('$A address.city.label should be equal to "Cool City"', () =>
-    expect($.$A.$('address.city').label).to.be.equal('Cool City'));
+  it('$A user.password error should be equal to "Password Invalid"', () =>
+    expect($.$A.$('user.password').error).to.be.equal('Password Invalid'));
+
+  it('$A user.password hasError should be true', () =>
+    expect($.$A.$('user.password').hasError).to.be.true);
+
+  it('$A user.password isValid should be false', () =>
+    expect($.$A.$('user.password').isValid).to.be.false);
 });
 
 describe('Check $B Nested Fields', () => {
@@ -101,7 +107,7 @@ describe('Check form.values() for Nested Fields', () => {
 
 describe('Check Nested Fields path property', () => {
   const path = {
-    a: 'address.city',
+    a: 'user.email',
     b: 'state.city.places',
     c: 'state.city.places.statueOfLiberty',
   };
@@ -150,4 +156,47 @@ describe('Check Nested $T add() and del()', () => {
 
   it('$T member.hobbies fields.size should be equal to 3', () =>
     expect($.$T.$('member.hobbies').fields.size).to.equal(3));
+});
+
+describe('Check Nested $T value on add()', () => {
+  it('$T member.hobbies value should be array', () =>
+    expect($.$T.$('member.hobbies').value).to.be.instanceof(Array));
+
+  it('$T member.hobbies value should have length of 3', () =>
+    expect($.$T.$('member.hobbies').value).to.have.lengthOf(3));
+
+  it('$T member.hobbies[1] initial should be equal to "AAA"', () =>
+    expect($.$T.$('member.hobbies[1]').initial).to.equal('AAA'));
+
+  it('$T member.hobbies[1] default should be equal to "AAA"', () =>
+    expect($.$T.$('member.hobbies[1]').default).to.equal('AAA'));
+
+  it('$T member.info[1] default should be an object', () =>
+    expect($.$T.$('member.info[1]').default).to.be.an('object'));
+
+  it('$T member.info[1] initial should be an object', () =>
+    expect($.$T.$('member.info[1]').initial).to.be.an('object'));
+
+  it('$T member.info[1].firstname value should be equal to "AAA"', () =>
+    expect($.$T.$('member.info[1].firstname').value).to.equal('AAA'));
+
+  it('$T member.info[1].lastname value should be equal to "BBB"', () =>
+    expect($.$T.$('member.info[1].lastname').value).to.equal('BBB'));
+
+  it('$T notIncrementalFields fields.get(notIncrementalKey) should be an object', () =>
+    expect($.$T.$('notIncrementalFields').fields.get('notIncrementalKey')).to.be.an('object'));
+
+  it('$T notIncrementalFields[notIncrementalKey] value should be equal to "XXX"', () =>
+    expect($.$T.$('notIncrementalFields[notIncrementalKey]').value).to.equal('XXX'));
+
+  it('$T notIncrementalFields add() return value should be equal to "anotherKey"', () =>
+    expect($.$T.$('notIncrementalFields').add('YYY', { key: 'anotherKey' })).to.equal('anotherKey'));
+});
+
+describe('Check $U Nested Fields', () => {
+  it('$U user.email value should be equal to "notAnEmail"', () =>
+    expect($.$U.$('user.email').value).to.be.equal('notAnEmail'));
+
+  it('$U user.emailConfirm value should be equal to "s.jobs@apple.com"', () =>
+    expect($.$U.$('user.emailConfirm').value).to.be.equal('s.jobs@apple.com'));
 });

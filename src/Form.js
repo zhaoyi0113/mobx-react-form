@@ -74,22 +74,6 @@ export default class Form {
     });
   }
 
-  observeFields(fields = null) {
-    // deep observe and validate each field
-    this.observeFieldsDeep(fields || this.fields);
-  }
-
-  observeFieldsDeep(fields) {
-    fields.forEach((field, key) => {
-      observe(fields.get(key), '$value', () => {
-        if (this.state.options.get('validateOnChange') === false) return;
-        this.validate({ key, field, showErrors: true, related: true });
-      });
-      // recursive observe and validate each field
-      if (field.fields.size) this.observeFieldsDeep(field.fields);
-    });
-  }
-
   validateOnInit() {
     if (this.state.options.get('validateOnInit') === false) return;
     // execute validation on form initialization
@@ -191,13 +175,13 @@ export default class Form {
   /* COMPUTED */
 
   @computed get hasError() {
-    return this.check('hasError', true)
-      || _.isString(this.validator.genericErrorMessage);
+    return _.isString(this.validator.genericErrorMessage)
+     || this.check('hasError', true);
   }
 
   @computed get isValid() {
-    return this.check('isValid', true)
-      && !_.isString(this.validator.genericErrorMessage);
+    return !_.isString(this.validator.genericErrorMessage)
+      && this.check('isValid', true);
   }
 
   @computed get isDirty() {
@@ -262,9 +246,9 @@ export default class Form {
   /**
     Event: On Add
   */
-  onAdd = (e, key = null) => {
+  onAdd = (e, val = null) => {
     e.preventDefault();
-    this.add(key);
+    this.add(val);
   };
 
   /**
